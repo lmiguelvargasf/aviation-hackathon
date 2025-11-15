@@ -8,7 +8,7 @@ from typing import Any
 from pydantic_ai import Agent, RunContext
 from pydantic_ai.models.google import GoogleModel
 
-from backend.schemas import AgentExplanation, FlightContext, RiskResult
+from backend.schemas import AgentExplanation, AgentPreference, FlightContext, RiskResult
 from backend.services.agent_utils import coerce_agent_result
 from backend.services.telemetry_tools import (
     PerformanceSummary,
@@ -83,23 +83,38 @@ def tool_analyze_performance(_: RunContext[None]) -> PerformanceSummary:
 async def generate_agent_explanation(
     context: FlightContext,
     risk: RiskResult,
+    preference: AgentPreference = "auto",
 ) -> AgentExplanation:
     """
     Execute the configured agent using the structured flight context / risk record.
     """
-    you_com_key = os.getenv("YOU_COM_API_KEY")
-    last_error: Exception | None = None
-    if you_com_key:
-        try:
-            return await generate_you_com_explanation(context, risk)
-        except Exception as exc:  # pragma: no cover - best-effort integration
-            last_error = exc
+    errors: list[str] = []
 
-    if os.getenv("GOOGLE_API_KEY"):
-        return await _run_gemini_agent(context, risk)
+    if preference in ("auto", "you_com"):
+        if os.getenv("YOU_COM_API_KEY"):
+            try:
+                return await generate_you_com_explanation(context, risk)
+            except Exception as exc:  # pragma: no cover - best-effort integration
+                errors.append(f"You.com agent failed: {exc}")
+                if preference == "you_com":
+                    raise RuntimeError(errors[-1]) from exc
+        elif preference == "you_com":
+            raise RuntimeError("YOU_COM_API_KEY is not set.")
 
-    if last_error:
-        raise RuntimeError(f"You.com agent failed: {last_error}") from last_error
+    if preference in ("auto", "gemini"):
+        if os.getenv("GOOGLE_API_KEY"):
+            try:
+                return await _run_gemini_agent(context, risk)
+            except Exception as exc:  # pragma: no cover - best-effort integration
+                errors.append(f"Gemini agent failed: {exc}")
+                if preference == "gemini":
+                    raise RuntimeError(errors[-1]) from exc
+        elif preference == "gemini":
+            raise RuntimeError("GOOGLE_API_KEY is not set.")
+
+    if errors:
+        raise RuntimeError(" / ".join(errors))
+
     raise RuntimeError(
         "Set YOU_COM_API_KEY or GOOGLE_API_KEY to enable AI explanations."
     )
@@ -153,4 +168,5 @@ async def _run_gemini_agent(
         run_kwargs["result_type"] = AgentExplanation
 
     result = await agent.run(run_input, **run_kwargs)
-    return coerce_agent_result(result)
+    explanation = coerce_agent_result(result)
+    return explanation.model_copy(update={"source": "Gemini"})

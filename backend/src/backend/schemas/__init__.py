@@ -1,8 +1,8 @@
-from .flight import (  # noqa: F401
+from .flight import (
     AgentExplanation,
+    AgentPreference,
     FlightContext,
     FlightEvaluation,
     RiskFactor,
     RiskResult,
 )
-

@@ -64,12 +64,19 @@ class RiskResult(BaseModel):
     factors: list[RiskFactor]
 
 
+ExplanationSource = Literal["You.com", "Gemini"]
+
+
+AgentPreference = Literal["auto", "you_com", "gemini"]
+
+
 class AgentExplanation(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     explanation: str
     recommendations: list[str]
     telemetry_findings: list[str] | None = None
+    source: ExplanationSource = "Gemini"
 
 
 class FlightEvaluation(BaseModel):
@@ -77,4 +84,3 @@ class FlightEvaluation(BaseModel):
 
     risk: RiskResult
     explanation: AgentExplanation
-

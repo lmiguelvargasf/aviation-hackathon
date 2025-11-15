@@ -1,22 +1,28 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, Query, status
 
-from backend.schemas import FlightContext, FlightEvaluation
+from backend.schemas import AgentPreference, FlightContext, FlightEvaluation
 from backend.services import compute_risk, generate_agent_explanation
 
 router = APIRouter(prefix="/api/should-you-fly", tags=["should-you-fly"])
 
 
 @router.post("/evaluate", response_model=FlightEvaluation)
-async def evaluate_flight(context: FlightContext) -> FlightEvaluation:
+async def evaluate_flight(
+    context: FlightContext,
+    agent_source: AgentPreference = Query(
+        "auto",
+        description="auto → prefer You.com then Gemini; or force a provider.",
+    ),
+) -> FlightEvaluation:
     """
     Run the deterministic risk engine plus the AI explanation layer.
     """
 
     risk = compute_risk(context)
     try:
-        explanation = await generate_agent_explanation(context, risk)
+        explanation = await generate_agent_explanation(context, risk, agent_source)
     except RuntimeError as exc:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -29,4 +35,3 @@ async def evaluate_flight(context: FlightContext) -> FlightEvaluation:
         ) from exc
 
     return FlightEvaluation(risk=risk, explanation=explanation)
-

@@ -40,10 +40,14 @@ export interface RiskResult {
   factors: RiskFactor[];
 }
 
+export type AgentExplanationSource = "You.com" | "Gemini";
+export type AgentPreference = "auto" | "gemini" | "you_com";
+
 export interface AgentExplanation {
   explanation: string;
   recommendations: string[];
   telemetry_findings?: string[] | null;
+  source: AgentExplanationSource;
 }
 
 export interface FlightEvaluation {
@@ -128,9 +132,13 @@ export async function createUser(userData: CreateUserRequest): Promise<User> {
 
 export async function evaluateFlight(
   context: FlightContext,
+  agentPreference: AgentPreference = "auto",
 ): Promise<FlightEvaluation> {
-  const apiBaseUrl = getApiBaseUrl();
-  const response = await fetch(`${apiBaseUrl}/api/should-you-fly/evaluate`, {
+  const apiBaseUrl = getApiBaseUrl().replace(/\/$/, "");
+  const url = new URL(`${apiBaseUrl}/api/should-you-fly/evaluate`);
+  url.searchParams.set("agent_source", agentPreference);
+
+  const response = await fetch(url.toString(), {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

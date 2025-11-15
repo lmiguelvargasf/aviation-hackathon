@@ -9,6 +9,7 @@ import {
 } from "react";
 
 import {
+  type AgentPreference,
   type FlightContext,
   type FlightEvaluation,
   type RiskTier,
@@ -16,6 +17,7 @@ import {
 } from "@/lib/apiClient";
 
 type FlightFormState = {
+  agentPreference: AgentPreference;
   departure_icao: string;
   destination_icao: string;
   departure_time_utc: string;
@@ -46,29 +48,36 @@ const tierColors: Record<RiskTier, string> = {
   "NO-GO": "bg-rose-500",
 };
 
+const agentOptions: { value: AgentPreference; label: string }[] = [
+  { value: "auto", label: "Auto (You.com → Gemini fallback)" },
+  { value: "you_com", label: "Force You.com Express" },
+  { value: "gemini", label: "Force Gemini agent" },
+];
+
 const buildInitialForm = (): FlightFormState => ({
-  departure_icao: "KSEA",
-  destination_icao: "KSFO",
-  departure_time_utc: new Date().toISOString().slice(0, 16),
-  pilot_total_hours: "350",
-  pilot_hours_last_90_days: "18",
+  agentPreference: "auto",
+  departure_icao: "KDEN",
+  destination_icao: "KSLC",
+  departure_time_utc: "2025-11-15T02:00",
+  pilot_total_hours: "220",
+  pilot_hours_last_90_days: "8",
   pilot_instrument_rating: true,
   pilot_night_current: true,
-  aircraft_type: "Cessna 182",
-  aircraft_mtow_kg: "1406",
-  planned_takeoff_weight_kg: "1280",
-  conditions_ifr_expected: false,
-  conditions_night: false,
-  terrain_mountainous: false,
-  departure_visibility_sm: "10",
-  destination_visibility_sm: "8",
-  departure_ceiling_ft: "6000",
-  destination_ceiling_ft: "4500",
-  max_crosswind_knots: "12",
-  gusts_knots: "18",
-  freezing_level_ft: "9000",
-  icing_risk_0_1: "0.2",
-  turbulence_risk_0_1: "0.3",
+  aircraft_type: "Cirrus SR22",
+  aircraft_mtow_kg: "1540",
+  planned_takeoff_weight_kg: "1450",
+  conditions_ifr_expected: true,
+  conditions_night: true,
+  terrain_mountainous: true,
+  departure_visibility_sm: "4",
+  destination_visibility_sm: "5",
+  departure_ceiling_ft: "1500",
+  destination_ceiling_ft: "1800",
+  max_crosswind_knots: "14",
+  gusts_knots: "26",
+  freezing_level_ft: "6000",
+  icing_risk_0_1: "0.35",
+  turbulence_risk_0_1: "0.55",
 });
 
 export default function ShouldYouFlyPage() {
@@ -126,7 +135,7 @@ export default function ShouldYouFlyPage() {
     };
 
     try {
-      const evaluation = await evaluateFlight(payload);
+      const evaluation = await evaluateFlight(payload, form.agentPreference);
       setResult(evaluation);
     } catch (err) {
       setError(
@@ -157,6 +166,28 @@ export default function ShouldYouFlyPage() {
           onSubmit={handleSubmit}
           className="space-y-6 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm"
         >
+          <Section title="AI Assistant">
+            <label className="block text-sm font-medium text-gray-700">
+              Preferred explainer
+              <select
+                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-200"
+                name="agentPreference"
+                value={form.agentPreference}
+                onChange={handleInputChange}
+              >
+                {agentOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <p className="text-xs text-gray-500">
+              Auto tries You.com first for live, cited intel and falls back to
+              Gemini plus telemetry tools if needed.
+            </p>
+          </Section>
+
           <Section title="Flight Plan">
             <div className="grid gap-4 md:grid-cols-2">
               <InputField
@@ -390,7 +421,10 @@ export default function ShouldYouFlyPage() {
                   </span>
                 </div>
                 <div className="mt-4">
-                  <RiskMeter score={result.risk.score} tier={result.risk.tier} />
+                  <RiskMeter
+                    score={result.risk.score}
+                    tier={result.risk.tier}
+                  />
                 </div>
                 {result.risk.factors.length > 0 && (
                   <div className="mt-4">
@@ -410,9 +444,22 @@ export default function ShouldYouFlyPage() {
                   </div>
                 )}
                 <div className="mt-6 space-y-3">
-                  <p className="text-base font-semibold text-gray-900">
-                    Why this assessment
-                  </p>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <p className="text-base font-semibold text-gray-900">
+                      Why this assessment
+                    </p>
+                    <span
+                      className={`rounded-full px-3 py-1 text-xs font-semibold text-white ${
+                        result.explanation.source === "You.com"
+                          ? "bg-indigo-600"
+                          : "bg-slate-700"
+                      }`}
+                    >
+                      {result.explanation.source === "You.com"
+                        ? "AI co-pilot · You.com Express"
+                        : "AI co-pilot · Gemini agent"}
+                    </span>
+                  </div>
                   <p className="text-gray-700">
                     {result.explanation.explanation}
                   </p>
@@ -436,9 +483,11 @@ export default function ShouldYouFlyPage() {
                         Telemetry insights
                       </p>
                       <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-sky-900">
-                        {result.explanation.telemetry_findings.map((finding) => (
-                          <li key={finding}>{finding}</li>
-                        ))}
+                        {result.explanation.telemetry_findings.map(
+                          (finding) => (
+                            <li key={finding}>{finding}</li>
+                          ),
+                        )}
                       </ul>
                     </div>
                   )}
@@ -537,4 +586,3 @@ function RiskMeter({ score, tier }: { score: number; tier: RiskTier }) {
     </div>
   );
 }
-

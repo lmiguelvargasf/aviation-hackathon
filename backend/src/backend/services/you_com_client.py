@@ -1,14 +1,14 @@
 from __future__ import annotations
 
 import os
-from textwrap import dedent
+from textwrap import shorten
 
 import httpx
 
 from backend.schemas import AgentExplanation, FlightContext, RiskResult
-from backend.services.agent_utils import try_parse_agent_output
 
-_DEFAULT_API_URL = "https://api.you.com/express"
+_DEFAULT_SEARCH_URL = "https://api.ydc-index.io/v1/search"
+_MAX_SNIPPET_CHARS = 220
 
 
 class YouComClientError(RuntimeError):
@@ -23,93 +23,106 @@ async def generate_you_com_explanation(
     if not api_key:
         raise YouComClientError("YOU_COM_API_KEY is not set.")
 
-    endpoint = os.getenv("YOU_COM_API_URL", _DEFAULT_API_URL)
-    prompt = _build_prompt(context, risk)
+    endpoint = os.getenv("YOU_COM_SEARCH_URL", _DEFAULT_SEARCH_URL)
+    query = _build_query(context, risk)
 
     timeout = httpx.Timeout(30.0, connect=10.0)
     async with httpx.AsyncClient(timeout=timeout) as client:
-        response = await client.post(
+        response = await client.get(
             endpoint,
-            headers={"Authorization": f"Bearer {api_key}"},
-            json={"query": prompt},
+            headers={"X-API-Key": api_key},
+            params={"query": query},
         )
+
     response.raise_for_status()
     data = response.json()
+    web_results = _extract_web_results(data)
 
-    answer = (
-        data.get("answer")
-        or data.get("response")
-        or data.get("text")
-        or data.get("content")
+    explanation = _compose_explanation(risk, web_results)
+    recommendations = _compose_recommendations(risk, web_results)
+    citations = _build_citations(web_results)
+
+    return AgentExplanation(
+        explanation=explanation,
+        recommendations=recommendations,
+        telemetry_findings=citations,
+        source="You.com",
     )
-    if not answer:
-        raise YouComClientError(f"Unexpected response shape: {data}")
-
-    parsed = try_parse_agent_output(answer)
-    if parsed:
-        return parsed
-
-    raise YouComClientError("You.com response was not valid AgentExplanation JSON.")
 
 
-def _build_prompt(context: FlightContext, risk: RiskResult) -> str:
-    factors = "\n".join(
-        f"- {factor.label} (+{factor.impact})" for factor in risk.factors
-    )
-    if not factors:
-        factors = "- No specific rule-based risk factors triggered."
+def _extract_web_results(payload: dict) -> list[dict]:
+    results = payload.get("results") or {}
+    web = results.get("web") or []
+    return [item for item in web if isinstance(item, dict)]
 
-    return dedent(
-        f"""
-        You are an aviation safety assistant. Given the structured flight context and
-        deterministic risk engine output, respond with concise safety guidance.
 
-        Respond strictly with minified JSON using this schema:
-        {{
-            "explanation": "2-4 sentence narrative about why GO/CAUTION/NO-GO",
-            "recommendations": [
-                "actionable recommendation 1",
-                "actionable recommendation 2",
-                "actionable recommendation 3"
-            ],
-            "telemetry_findings": [
-                "optional short historical telemetry insight",
-                "... or leave array empty"
+def _compose_explanation(risk: RiskResult, web_results: list[dict]) -> str:
+    factors_text = ", ".join(f.label for f in risk.factors[:3]) or "no elevated factors"
+    parts = [
+        f"Deterministic engine scored {risk.score} ({risk.tier}) with drivers such as {factors_text}.",
+    ]
+    if web_results:
+        top = web_results[0]
+        title = top.get("title") or "a cited reference"
+        snippet = (
+            top.get("description")
+            or (top.get("snippets") or [None])[0]
+            or "additional context on personal minimums"
+        )
+        snippet = shorten(snippet, width=_MAX_SNIPPET_CHARS, placeholder="…")
+        url = top.get("url")
+        if url:
+            parts.append(f'You.com Search surfaced "{title}" ({url}) noting {snippet}.')
+        else:
+            parts.append(f'You.com Search surfaced "{title}" noting {snippet}.')
+    else:
+        parts.append(
+            "You.com Search returned limited public guidance for this niche query, so lean on personal minima and telemetry."
+        )
+    return " ".join(parts)
+
+
+def _compose_recommendations(
+    risk: RiskResult,
+    web_results: list[dict],
+) -> list[str]:
+    recs: list[str] = []
+    for factor in risk.factors[:3]:
+        recs.append(f"Mitigate factor: {factor.label}.")
+
+    if web_results:
+        top = web_results[0]
+        recs.append(
+            f"Review {top.get('title', 'the cited article')} for additional safety context."
+        )
+
+    if len(recs) < 3:
+        recs.extend(
+            [
+                "Cross-check personal minimums against current METAR/TAF updates.",
+                "Brief alternates and contingency fuel before launch.",
             ]
-        }}
+        )
+    return recs[:5]
 
-        Always keep explanation under 4 sentences, use imperative verbs in
-        recommendations, and ensure JSON is valid.
 
-        Flight:
-        - Route: {context.departure_icao} to {context.destination_icao}
-        - Departure UTC: {context.departure_time_utc.isoformat()}
-        - Pilot total hours: {context.pilot_total_hours}
-        - Pilot hours (90d): {context.pilot_hours_last_90_days}
-        - Instrument rated: {context.pilot_instrument_rating}
-        - Night current: {context.pilot_night_current}
-        - Aircraft type: {context.aircraft_type}
-        - MTOW kg: {context.aircraft_mtow_kg}
-        - Planned takeoff weight kg: {context.planned_takeoff_weight_kg}
-        - IFR expected: {context.conditions_ifr_expected}
-        - Night segment: {context.conditions_night}
-        - Mountainous terrain: {context.terrain_mountainous}
+def _build_citations(web_results: list[dict]) -> list[str] | None:
+    citations = []
+    for item in web_results[:3]:
+        title = item.get("title") or "You.com source"
+        url = item.get("url")
+        if url:
+            citations.append(f"{title} – {url}")
+    return citations or None
 
-        Weather inputs:
-        - Departure visibility SM: {context.departure_visibility_sm}
-        - Destination visibility SM: {context.destination_visibility_sm}
-        - Departure ceiling ft: {context.departure_ceiling_ft}
-        - Destination ceiling ft: {context.destination_ceiling_ft}
-        - Max crosswind kt: {context.max_crosswind_knots}
-        - Gusts kt: {context.gusts_knots}
-        - Freezing level ft: {context.freezing_level_ft}
-        - Icing risk 0-1: {context.icing_risk_0_1}
-        - Turbulence risk 0-1: {context.turbulence_risk_0_1}
 
-        Risk engine:
-        - Score: {risk.score}
-        - Tier: {risk.tier}
-        - Fired factors:
-        {factors}
-        """
-    ).strip()
+def _build_query(context: FlightContext, risk: RiskResult) -> str:
+    factors = (
+        ", ".join(f.label for f in risk.factors[:3]) or "general aviation risk factors"
+    )
+    return (
+        f"Flight risk guidance for {context.aircraft_type} departing {context.departure_icao} "
+        f"to {context.destination_icao} around {context.departure_time_utc.isoformat()}. "
+        f"Risk tier {risk.tier} score {risk.score}. Factors: {factors}. "
+        "Personal minimums and IFR considerations."
+    )
