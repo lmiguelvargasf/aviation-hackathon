@@ -367,7 +367,7 @@ export default function ShouldYouFlyPage() {
                 label="Icing risk (0–1)"
                 name="icing_risk_0_1"
                 type="number"
-                step="0.1"
+                step="0.05"
                 min="0"
                 max="1"
                 value={form.icing_risk_0_1}
@@ -378,7 +378,7 @@ export default function ShouldYouFlyPage() {
                 label="Turbulence risk (0–1)"
                 name="turbulence_risk_0_1"
                 type="number"
-                step="0.1"
+                step="0.05"
                 min="0"
                 max="1"
                 value={form.turbulence_risk_0_1}
