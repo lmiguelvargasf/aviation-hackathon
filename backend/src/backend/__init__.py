@@ -6,6 +6,7 @@ from piccolo.apps.user.tables import BaseUser
 from piccolo_admin.endpoints import create_admin
 from strawberry.fastapi import GraphQLRouter
 
+from .apps.should_you_fly.rest.routes import router as should_you_fly_router
 from .apps.users.rest.routes import router as users_router
 from .db import close_database_connection_pool, open_database_connection_pool
 from .schema import schema
@@ -35,6 +36,7 @@ app.add_middleware(
 graphql_app = GraphQLRouter(schema, path="/graphql")
 app.include_router(graphql_app)
 app.include_router(users_router)
+app.include_router(should_you_fly_router)
 
 
 @app.get("/health")

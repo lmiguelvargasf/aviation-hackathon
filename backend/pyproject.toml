@@ -13,7 +13,7 @@ dependencies = [
     "piccolo-admin>=1.9.1",
     "piccolo[postgres]>=1.24.2",
     "polars>=1.35.2",
-    "pydantic-ai>=1.18.0",
+    "pydantic-ai-slim[google]>=0.2.0",
     "pydantic-settings>=2.8.1",
     "strawberry-graphql>=0.266.0",
 ]

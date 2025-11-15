@@ -27,6 +27,55 @@ export interface CreateUserRequest {
   email: string;
 }
 
+export type RiskTier = "GO" | "CAUTION" | "NO-GO";
+
+export interface RiskFactor {
+  label: string;
+  impact: number;
+}
+
+export interface RiskResult {
+  score: number;
+  tier: RiskTier;
+  factors: RiskFactor[];
+}
+
+export interface AgentExplanation {
+  explanation: string;
+  recommendations: string[];
+  telemetry_findings?: string[] | null;
+}
+
+export interface FlightEvaluation {
+  risk: RiskResult;
+  explanation: AgentExplanation;
+}
+
+export interface FlightContext {
+  departure_icao: string;
+  destination_icao: string;
+  departure_time_utc: string;
+  pilot_total_hours: number;
+  pilot_hours_last_90_days: number;
+  pilot_instrument_rating: boolean;
+  pilot_night_current: boolean;
+  aircraft_type: string;
+  aircraft_mtow_kg: number;
+  planned_takeoff_weight_kg: number;
+  conditions_ifr_expected: boolean;
+  conditions_night: boolean;
+  terrain_mountainous: boolean;
+  departure_visibility_sm: number;
+  destination_visibility_sm: number;
+  departure_ceiling_ft: number;
+  destination_ceiling_ft: number;
+  max_crosswind_knots: number;
+  gusts_knots: number;
+  freezing_level_ft: number | null;
+  icing_risk_0_1: number;
+  turbulence_risk_0_1: number;
+}
+
 class ApiError extends Error {
   constructor(
     message: string,
@@ -75,4 +124,18 @@ export async function createUser(userData: CreateUserRequest): Promise<User> {
     body: JSON.stringify(userData),
   });
   return handleResponse<User>(response);
+}
+
+export async function evaluateFlight(
+  context: FlightContext,
+): Promise<FlightEvaluation> {
+  const apiBaseUrl = getApiBaseUrl();
+  const response = await fetch(`${apiBaseUrl}/api/should-you-fly/evaluate`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(context),
+  });
+  return handleResponse<FlightEvaluation>(response);
 }
