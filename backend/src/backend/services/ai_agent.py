@@ -1,16 +1,15 @@
 from __future__ import annotations
 
 import inspect
-import json
 import os
 from textwrap import dedent
 from typing import Any
 
-from pydantic import ValidationError
 from pydantic_ai import Agent, RunContext
 from pydantic_ai.models.google import GoogleModel
 
 from backend.schemas import AgentExplanation, FlightContext, RiskResult
+from backend.services.agent_utils import coerce_agent_result
 from backend.services.telemetry_tools import (
     PerformanceSummary,
     WeatherEnvSummary,
@@ -21,7 +20,7 @@ from backend.services.telemetry_tools import (
     analyze_weight_fuel,
     analyze_wow,
 )
-
+from backend.services.you_com_client import generate_you_com_explanation
 
 _AGENT_INIT_SIGNATURE = inspect.signature(Agent)
 _AGENT_RUN_SIGNATURE = inspect.signature(Agent.run)
@@ -88,6 +87,28 @@ async def generate_agent_explanation(
     """
     Execute the configured agent using the structured flight context / risk record.
     """
+    you_com_key = os.getenv("YOU_COM_API_KEY")
+    last_error: Exception | None = None
+    if you_com_key:
+        try:
+            return await generate_you_com_explanation(context, risk)
+        except Exception as exc:  # pragma: no cover - best-effort integration
+            last_error = exc
+
+    if os.getenv("GOOGLE_API_KEY"):
+        return await _run_gemini_agent(context, risk)
+
+    if last_error:
+        raise RuntimeError(f"You.com agent failed: {last_error}") from last_error
+    raise RuntimeError(
+        "Set YOU_COM_API_KEY or GOOGLE_API_KEY to enable AI explanations."
+    )
+
+
+async def _run_gemini_agent(
+    context: FlightContext,
+    risk: RiskResult,
+) -> AgentExplanation:
     if not os.getenv("GOOGLE_API_KEY"):
         raise RuntimeError(
             "GOOGLE_API_KEY is not set. Provide a Gemini key to enable the agent."
@@ -131,66 +152,5 @@ async def generate_agent_explanation(
     if not _SUPPORTS_RESULT_TYPE_AT_INIT and _SUPPORTS_RESULT_TYPE_AT_RUN:
         run_kwargs["result_type"] = AgentExplanation
 
-    print("About to run agent")
-    try:
-        result = await agent.run(run_input, **run_kwargs)
-    except Exception as e:
-        print("Error running agent:", e)
-        raise e
-
-    return _coerce_agent_result(result)
-
-
-def _coerce_agent_result(result: Any) -> AgentExplanation:
-    parsed = _try_parse_agent_output(getattr(result, "data", None))
-    if parsed:
-        return parsed
-
-    raw_text = getattr(result, "text", None)
-    if raw_text is None:
-        raw_text = getattr(result, "raw", None)
-    if raw_text is None:
-        raw_text = getattr(result, "content", None)
-    if raw_text is None and getattr(result, "data", None) is not None:
-        raw_text = result.data
-    if raw_text is None:
-        raw_text = str(result)
-
-    parsed = _try_parse_agent_output(raw_text)
-    if parsed:
-        return parsed
-
-    return AgentExplanation(
-        explanation=str(raw_text),
-        recommendations=[
-            "Reassess weather minima and personal limits.",
-            "Coordinate with an instructor or safety pilot before launch.",
-            "Prepare alternates and contingency fuel reserves.",
-        ],
-        telemetry_findings=None,
-    )
-
-
-def _try_parse_agent_output(value: Any) -> AgentExplanation | None:
-    if value is None:
-        return None
-    if isinstance(value, AgentExplanation):
-        return value
-    if isinstance(value, dict):
-        try:
-            return AgentExplanation.model_validate(value)
-        except ValidationError:
-            return None
-    if isinstance(value, str):
-        stripped = value.strip()
-        if not stripped:
-            return None
-        try:
-            return AgentExplanation.model_validate_json(stripped)
-        except ValidationError:
-            try:
-                return AgentExplanation.model_validate(json.loads(stripped))
-            except (json.JSONDecodeError, ValidationError):
-                return None
-    return None
-
+    result = await agent.run(run_input, **run_kwargs)
+    return coerce_agent_result(result)

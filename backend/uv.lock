@@ -55,6 +55,7 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "fastapi", extra = ["standard"] },
+    { name = "httpx" },
     { name = "loguru" },
     { name = "piccolo", extra = ["postgres"] },
     { name = "piccolo-admin" },
@@ -78,6 +79,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "fastapi", extras = ["standard"], specifier = ">=0.115.12" },
+    { name = "httpx", specifier = ">=0.28.1" },
     { name = "loguru", specifier = ">=0.7.3" },
     { name = "piccolo", extras = ["postgres"], specifier = ">=1.24.2" },
     { name = "piccolo-admin", specifier = ">=1.9.1" },
