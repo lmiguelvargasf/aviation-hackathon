@@ -5,12 +5,19 @@ from pathlib import Path
 import polars as pl
 from pydantic import BaseModel, ConfigDict
 
-
 DATA_PATH = (
     Path(__file__).resolve().parent.parent / "data" / "AirForce_Sortie_Aeromod.csv"
 )
 
 _DATAFRAME: pl.DataFrame | None = None
+_CSV_READ_KWARGS = {
+    "infer_schema_length": 10000,
+    "schema_overrides": {
+        # Ensure ambient temp column is parsed as float even if values include decimals.
+        "ADC_AMBIENT_AIR_TEMP": pl.Float64,
+    },
+    "null_values": ["", "NA", "NaN"],
+}
 
 
 class WeatherEnvSummary(BaseModel):
@@ -67,9 +74,9 @@ def analyze_weather_env() -> WeatherEnvSummary:
         pl.col("PRESS_ALT_IC").max().alias("max_press_alt"),
         pl.col("AOSS").abs().max().alias("max_abs_aoss"),
         pl.col("AOA").max().alias("max_aoa"),
-        pl.max_horizontal(pl.col("AIRSPEED_IC"), pl.col("AIRSPEED_TIC")).max().alias(
-            "max_airspeed"
-        ),
+        pl.max_horizontal(pl.col("AIRSPEED_IC"), pl.col("AIRSPEED_TIC"))
+        .max()
+        .alias("max_airspeed"),
     ).row(0, named=True)
 
     min_airspeed = float(
@@ -158,7 +165,7 @@ def analyze_wow() -> WowSummary:
 
     takeoffs = 0
     landings = 0
-    for previous, current in zip(on_ground_series, on_ground_series[1:]):
+    for previous, current in zip(on_ground_series, on_ground_series[1:], strict=False):
         if previous and not current:
             takeoffs += 1
         elif not previous and current:
@@ -228,6 +235,5 @@ def _load_dataframe() -> pl.DataFrame:
                 f"Telemetry CSV not found at {DATA_PATH}. "
                 "Place AirForce_Sortie_Aeromod.csv there."
             )
-        _DATAFRAME = pl.read_csv(DATA_PATH)
+        _DATAFRAME = pl.read_csv(DATA_PATH, **_CSV_READ_KWARGS)
     return _DATAFRAME
-
