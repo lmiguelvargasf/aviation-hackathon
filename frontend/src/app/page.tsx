@@ -1,8 +1,14 @@
 import Link from "next/link";
 
+type Stat = {
+  label: string;
+  value: string;
+  href?: string;
+};
+
 export default function Home() {
-  const stats = [
-    { label: "Deterministic rules", value: "12+" },
+  const stats: Stat[] = [
+    { label: "Deterministic rules", value: "12+", href: "/rules" },
     { label: "AI copilots", value: "You.com + Gemini" },
     { label: "Avg. briefing time", value: "< 60s" },
   ];
@@ -51,16 +57,32 @@ export default function Home() {
         </div>
 
         <div className="mt-14 grid w-full gap-4 rounded-3xl border border-white/10 bg-white/5 p-6 shadow-2xl shadow-black/40 backdrop-blur sm:grid-cols-3">
-          {stats.map((stat) => (
-            <div key={stat.label} className="rounded-2xl bg-white/5 p-4">
-              <p className="text-xs uppercase tracking-[0.4em] text-slate-400">
-                {stat.label}
-              </p>
-              <p className="mt-3 text-xl font-semibold text-white">
-                {stat.value}
-              </p>
-            </div>
-          ))}
+          {stats.map((stat) => {
+            const Card = stat.href ? Link : "div";
+            return (
+              <Card
+                key={stat.label}
+                {...(stat.href ? { href: stat.href } : {})}
+                className={`rounded-2xl bg-white/5 p-4 transition ${
+                  stat.href
+                    ? "hover:bg-white/10 hover:shadow-lg hover:shadow-sky-900/20"
+                    : ""
+                }`}
+              >
+                <p className="text-xs uppercase tracking-[0.4em] text-slate-400">
+                  {stat.label}
+                </p>
+                <p className="mt-3 text-xl font-semibold text-white">
+                  {stat.value}
+                </p>
+                {stat.href && (
+                  <span className="mt-2 inline-flex items-center text-xs text-sky-300">
+                    View rules →
+                  </span>
+                )}
+              </Card>
+            );
+          })}
         </div>
       </div>
     </main>
