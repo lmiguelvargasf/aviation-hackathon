@@ -27,21 +27,20 @@ export default function Home() {
       </div>
 
       <div className="relative mx-auto flex min-h-screen max-w-6xl flex-col items-center justify-center px-6 py-24 text-center lg:px-10">
+        <div className="absolute left-1/2 top-[15%] -translate-x-1/2 text-6xl opacity-80 animate-[fly_12s_linear_infinite]">
+          ✈️
+        </div>
         <p className="text-xs uppercase tracking-[0.6em] text-sky-300">
           Aviation hackathon demo
         </p>
-        <h1 className="mt-6 text-4xl font-semibold leading-tight text-white sm:text-5xl lg:text-6xl">
+        <h1 className="mt-6 bg-gradient-to-r from-white via-sky-100 to-sky-300 bg-clip-text text-5xl font-bold leading-tight text-transparent sm:text-6xl lg:text-7xl">
           ClearSky AI
-          <span className="text-sky-300">
-            {" "}
-            Deterministic + AI Go/No-Go radar
-          </span>
         </h1>
-        <p className="mt-6 max-w-3xl text-base text-slate-300">
-          Feed in your mission, get a transparent rule-based score, and let our
-          AI copilots narrate the “why” with live web intel and telemetry cues.
-          Built for pilots who want both discipline and intuition before wheels
-          up.
+        <p className="mt-3 text-xl font-medium text-sky-200 sm:text-2xl">
+          Deterministic + AI Go/No-Go radar
+        </p>
+        <p className="mt-6 max-w-2xl text-base text-slate-300">
+          Transparent risk scoring meets dual AI copilots. Get your score, see which factors fired, and let You.com or Gemini explain why—in under 60 seconds.
         </p>
 
         <div className="mt-10 flex flex-col gap-4 sm:flex-row">
