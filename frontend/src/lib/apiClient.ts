@@ -55,6 +55,11 @@ export interface FlightEvaluation {
   explanation: AgentExplanation;
 }
 
+export interface EvaluationHistoryPoint {
+  timestamp: string;
+  score: number;
+}
+
 export interface FlightContext {
   departure_icao: string;
   destination_icao: string;
@@ -146,4 +151,10 @@ export async function evaluateFlight(
     body: JSON.stringify(context),
   });
   return handleResponse<FlightEvaluation>(response);
+}
+
+export async function getEvaluationHistory(): Promise<EvaluationHistoryPoint[]> {
+  const apiBaseUrl = getApiBaseUrl().replace(/\/$/, "");
+  const response = await fetch(`${apiBaseUrl}/api/should-you-fly/history`);
+  return handleResponse<EvaluationHistoryPoint[]>(response);
 }

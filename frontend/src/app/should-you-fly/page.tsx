@@ -5,16 +5,23 @@ import {
   type FormEvent,
   type InputHTMLAttributes,
   type ReactNode,
+  useCallback,
+  useEffect,
   useState,
 } from "react";
 
 import {
   type AgentPreference,
+  type EvaluationHistoryPoint,
   type FlightContext,
   type FlightEvaluation,
   type RiskTier,
   evaluateFlight,
+  getEvaluationHistory,
 } from "@/lib/apiClient";
+import { HistoryChart } from "./widgets/HistoryChart";
+import { RiskFactorChart } from "./widgets/RiskFactorChart";
+
 
 type FlightFormState = {
   agentPreference: AgentPreference;
@@ -85,6 +92,20 @@ export default function ShouldYouFlyPage() {
   const [result, setResult] = useState<FlightEvaluation | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [history, setHistory] = useState<EvaluationHistoryPoint[] | null>(null);
+
+  const refreshHistory = useCallback(async () => {
+    try {
+      const points = await getEvaluationHistory();
+      setHistory(points);
+    } catch {
+      setHistory(null);
+    }
+  }, []);
+
+  useEffect(() => {
+    void refreshHistory();
+  }, [refreshHistory]);
 
   const departureDate = new Date(form.departure_time_utc);
   const departureDisplay = Number.isNaN(departureDate.getTime())
@@ -153,6 +174,7 @@ export default function ShouldYouFlyPage() {
     try {
       const evaluation = await evaluateFlight(payload, form.agentPreference);
       setResult(evaluation);
+      void refreshHistory();
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Failed to evaluate flight risk.",
@@ -471,16 +493,9 @@ export default function ShouldYouFlyPage() {
                       <p className="text-sm font-semibold uppercase tracking-wide text-slate-400">
                         Fired factors
                       </p>
-                      <ul className="mt-3 flex flex-wrap gap-2 text-xs">
-                        {result.risk.factors.map((factor) => (
-                          <li
-                            key={factor.label}
-                            className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-slate-200"
-                          >
-                            {factor.label} (+{factor.impact})
-                          </li>
-                        ))}
-                      </ul>
+                      <div className="mt-3 rounded-2xl border border-white/10 bg-white/5 p-4">
+                        <RiskFactorChart factors={result.risk.factors} />
+                      </div>
                     </div>
                   )}
                   <div className="mt-6 space-y-4 rounded-2xl border border-white/10 bg-slate-900/50 p-5">
@@ -566,6 +581,25 @@ export default function ShouldYouFlyPage() {
                 title="AI briefing layer"
                 body="You.com Express for cited web intel, Gemini for telemetry comparisons—both ready on demand."
               />
+            </div>
+            <div className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-2xl shadow-black/40 backdrop-blur">
+              {history && history.length > 1 ? (
+                <>
+                  <p className="text-xs uppercase tracking-[0.4em] text-slate-400">
+                    Recent deterministic scores
+                  </p>
+                  <p className="text-sm text-slate-300">
+                    Last {history.length} evaluations run on this backend.
+                  </p>
+                  <div className="mt-4">
+                    <HistoryChart data={history} />
+                  </div>
+                </>
+              ) : (
+                <p className="text-sm text-slate-300">
+                  Evaluate a couple of flights to see the score trend.
+                </p>
+              )}
             </div>
           </div>
         </div>

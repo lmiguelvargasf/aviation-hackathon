@@ -3,7 +3,11 @@ from __future__ import annotations
 from fastapi import APIRouter, HTTPException, Query, status
 
 from backend.schemas import AgentPreference, FlightContext, FlightEvaluation
-from backend.services import compute_risk, generate_agent_explanation
+from backend.services import (
+    RECENT_EVALUATIONS,
+    compute_risk,
+    generate_agent_explanation,
+)
 
 router = APIRouter(prefix="/api/should-you-fly", tags=["should-you-fly"])
 
@@ -35,3 +39,15 @@ async def evaluate_flight(
         ) from exc
 
     return FlightEvaluation(risk=risk, explanation=explanation)
+
+
+@router.get("/history")
+async def get_recent_history() -> list[dict[str, str | int]]:
+    """
+    Return the last few deterministic scores (UTC timestamp + score).
+    """
+
+    return [
+        {"timestamp": ts.isoformat(), "score": score}
+        for ts, score in list(RECENT_EVALUATIONS)
+    ]
