@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import {
   type ChangeEvent,
   type FormEvent,
@@ -20,7 +21,6 @@ import {
   getEvaluationHistory,
 } from "@/lib/apiClient";
 import { HistoryChart } from "./widgets/HistoryChart";
-
 
 type FlightFormState = {
   agentPreference: AgentPreference;
@@ -186,9 +186,12 @@ export default function ShouldYouFlyPage() {
       </div>
       <div className="relative mx-auto max-w-7xl px-4 py-16 lg:px-8">
         <header className="text-center lg:text-left">
-          <p className="text-xs uppercase tracking-[0.6em] text-sky-400">
+          <Link
+            href="/"
+            className="inline-block text-xs uppercase tracking-[0.6em] text-sky-400 transition hover:text-sky-300"
+          >
             ClearSky AI
-          </p>
+          </Link>
           <h1 className="mt-4 text-4xl font-semibold leading-tight text-white sm:text-5xl">
             Deterministic risk + AI copilots for every mission briefing
           </h1>
