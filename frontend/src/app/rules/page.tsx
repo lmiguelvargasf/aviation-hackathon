@@ -129,7 +129,7 @@ export default function RulesPage() {
               Deterministic layer
             </p>
             <h1 className="mt-4 text-3xl font-semibold text-white sm:text-4xl">
-              Rulebook driving the Should You Fly? score
+              Rulebook driving the ClearSky AI score
             </h1>
             <p className="mt-3 max-w-2xl text-sm text-slate-300">
               Each rule below adds a fixed number of points when true. Scores are

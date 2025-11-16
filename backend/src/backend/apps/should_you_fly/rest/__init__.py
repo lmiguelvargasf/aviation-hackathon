@@ -1,2 +1,2 @@
-# Rest router package for Should You Fly feature.
+# Rest router package for ClearSky AI feature.
 

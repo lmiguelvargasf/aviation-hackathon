@@ -187,7 +187,7 @@ export default function ShouldYouFlyPage() {
       <div className="relative mx-auto max-w-7xl px-4 py-16 lg:px-8">
         <header className="text-center lg:text-left">
           <p className="text-xs uppercase tracking-[0.6em] text-sky-400">
-            Flight readiness
+            ClearSky AI
           </p>
           <h1 className="mt-4 text-4xl font-semibold leading-tight text-white sm:text-5xl">
             Deterministic risk + AI copilots for every mission briefing

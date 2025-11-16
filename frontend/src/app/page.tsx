@@ -31,7 +31,7 @@ export default function Home() {
           Aviation hackathon demo
         </p>
         <h1 className="mt-6 text-4xl font-semibold leading-tight text-white sm:text-5xl lg:text-6xl">
-          Should You Fly?
+          ClearSky AI
           <span className="text-sky-300">
             {" "}
             Deterministic + AI Go/No-Go radar
@@ -107,7 +107,7 @@ type Suggestion = {
 const suggestionBlueprint: Suggestion[] = [
   {
     label: "Assess flight safety",
-    hint: "Route to the Should You Fly? console",
+    hint: "Route to the ClearSky AI console",
     target: "/should-you-fly",
     keywords: ["assess", "safety", "fly", "go", "launch", "risk"],
     icon: "✈️",

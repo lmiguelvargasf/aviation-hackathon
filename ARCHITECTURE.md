@@ -1,4 +1,4 @@
-# Aviation Hackathon - System Architecture
+# ClearSky AI - System Architecture
 
 ## High-Level Overview
 
@@ -8,7 +8,7 @@ graph TB
     Pilot[👨‍✈️ Pilot Input<br/>Flight Context]
 
     Landing -.->|Navigate| UI
-    Pilot --> UI[📊 Should You Fly?<br/>Assessment Dashboard]
+    Pilot --> UI[📊 ClearSky AI<br/>Assessment Dashboard]
 
     UI --> Engine[🎯 Risk Engine<br/>12+ Deterministic Rules<br/>Transparent Scoring]
 

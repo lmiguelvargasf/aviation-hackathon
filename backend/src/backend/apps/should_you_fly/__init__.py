@@ -1,2 +1,2 @@
-# Package marker for the Should You Fly? REST API.
+# Package marker for the ClearSky AI REST API.
 
