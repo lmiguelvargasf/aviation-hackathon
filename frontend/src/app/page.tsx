@@ -27,10 +27,7 @@ export default function Home() {
       </div>
 
       <div className="relative mx-auto flex min-h-screen max-w-6xl flex-col items-center justify-center px-6 py-24 text-center lg:px-10">
-        <p className="text-xs uppercase tracking-[0.6em] text-sky-300">
-          Aviation hackathon demo
-        </p>
-        <h1 className="mt-6 bg-gradient-to-r from-white via-sky-100 to-sky-300 bg-clip-text text-5xl font-bold leading-tight text-transparent sm:text-6xl lg:text-7xl">
+        <h1 className="bg-gradient-to-r from-white via-sky-100 to-sky-300 bg-clip-text text-5xl font-bold leading-tight text-transparent sm:text-6xl lg:text-7xl">
           ClearSky AI
         </h1>
         <div className="relative mt-4 h-20 w-full overflow-hidden">
@@ -53,11 +50,6 @@ export default function Home() {
         </div>
         <p className="text-xl font-medium text-sky-200 sm:text-2xl">
           Deterministic + AI Go/No-Go radar
-        </p>
-        <p className="mt-6 max-w-2xl text-base text-slate-300">
-          Transparent risk scoring meets dual AI copilots. Get your score, see
-          which factors fired, and let You.com or Gemini explain why—in under 60
-          seconds.
         </p>
 
         <div className="mt-10 flex flex-col gap-4 sm:flex-row">
@@ -207,10 +199,7 @@ function AgentDialog() {
 
   return (
     <div className="mt-12 w-full max-w-3xl rounded-3xl border border-white/10 bg-white/5 p-6 text-left shadow-2xl shadow-black/40 backdrop-blur-lg">
-      <p className="text-sm uppercase tracking-[0.5em] text-sky-200">
-        Agent question
-      </p>
-      <h2 className="mt-3 text-2xl font-semibold text-white">
+      <h2 className="text-2xl font-semibold text-white">
         Hi! How can I help you today?
       </h2>
       <form className="mt-6" onSubmit={handleSubmit}>
