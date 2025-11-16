@@ -55,9 +55,9 @@ const tierColors: Record<RiskTier, string> = {
 };
 
 const agentOptions: { value: AgentPreference; label: string }[] = [
-  { value: "auto", label: "Auto (You.com → Gemini fallback)" },
-  { value: "you_com", label: "Force You.com Express" },
-  { value: "gemini", label: "Force Gemini agent" },
+  { value: "auto", label: "Auto" },
+  { value: "you_com", label: "You.com Express" },
+  { value: "gemini", label: "Gemini Agent" },
 ];
 
 const buildInitialForm = (): FlightFormState => ({
