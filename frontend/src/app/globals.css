@@ -33,3 +33,12 @@ body {
     transform: translateX(-50%) translateX(100vw);
   }
 }
+
+@keyframes bank {
+  0%, 100% {
+    transform: rotate(-5deg);
+  }
+  50% {
+    transform: rotate(5deg);
+  }
+}

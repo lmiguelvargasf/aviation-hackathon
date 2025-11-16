@@ -27,8 +27,21 @@ export default function Home() {
       </div>
 
       <div className="relative mx-auto flex min-h-screen max-w-6xl flex-col items-center justify-center px-6 py-24 text-center lg:px-10">
-        <div className="absolute left-1/2 top-[15%] -translate-x-1/2 text-6xl opacity-80 animate-[fly_12s_linear_infinite]">
-          ✈️
+        <div className="absolute left-1/2 top-[15%] -translate-x-1/2 animate-[fly_12s_linear_infinite]">
+          <svg
+            width="80"
+            height="80"
+            viewBox="0 0 100 100"
+            className="drop-shadow-[0_0_15px_rgba(56,189,248,0.6)] animate-[bank_3s_ease-in-out_infinite]"
+          >
+            <path
+              d="M50 20 L50 35 L35 45 L20 47 L22 50 L35 48 L50 55 L50 75 L45 78 L46 80 L50 79 L54 80 L55 78 L50 75 L50 55 L65 48 L78 50 L80 47 L65 45 L50 35 Z"
+              fill="#38bdf8"
+              stroke="#0ea5e9"
+              strokeWidth="1"
+            />
+            <circle cx="50" cy="25" r="3" fill="#7dd3fc" />
+          </svg>
         </div>
         <p className="text-xs uppercase tracking-[0.6em] text-sky-300">
           Aviation hackathon demo
@@ -40,7 +53,9 @@ export default function Home() {
           Deterministic + AI Go/No-Go radar
         </p>
         <p className="mt-6 max-w-2xl text-base text-slate-300">
-          Transparent risk scoring meets dual AI copilots. Get your score, see which factors fired, and let You.com or Gemini explain why—in under 60 seconds.
+          Transparent risk scoring meets dual AI copilots. Get your score, see
+          which factors fired, and let You.com or Gemini explain why—in under 60
+          seconds.
         </p>
 
         <div className="mt-10 flex flex-col gap-4 sm:flex-row">
