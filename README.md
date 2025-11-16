@@ -1,4 +1,4 @@
-# Fast Nova Stack 💫
+# ClearSky AI ✈️
 
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)
 ![Python](https://img.shields.io/badge/python-3.13-blue?style=for-the-badge&logo=python)
@@ -7,11 +7,18 @@
 ![Next.js](https://img.shields.io/badge/Next.js-15.x-black?style=for-the-badge&logo=next.js)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?style=for-the-badge&logo=typescript)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-0074D9?style=for-the-badge&logo=postgresql&logoColor=white)
-![GraphQL](https://img.shields.io/badge/GraphQL-E10098?style=for-the-badge&logo=graphql&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-0074D9?style=for-the-badge&logo=docker&logoColor=white)
-![Task](https://img.shields.io/badge/Task-43B883?style=for-the-badge&logo=task&logoColor=white)
 
-A modern full-stack application template built for quick and efficient project setup.
+**Aviation Go/No-Go Decision Assistant** combining deterministic risk scoring with dual AI copilots (You.com Express + Google Gemini).
+
+## 🎯 What is ClearSky AI?
+
+ClearSky AI helps pilots make safer pre-flight decisions by:
+- Running **12+ transparent deterministic rules** that score flight risk (0-100 scale)
+- Providing **AI-powered explanations** via You.com (live web intel) or Gemini (telemetry insights)
+- Delivering **GO / CAUTION / NO-GO** recommendations in under 60 seconds
+
+Built for the aviation hackathon to showcase intelligent safety tooling.
 
 ## 📚 Table of Contents
 
@@ -28,15 +35,19 @@ A modern full-stack application template built for quick and efficient project s
 ### Backend
 - **[Python][python]** – Core programming language for backend.
 - **[FastAPI][fastapi]** – A modern, fast (high-performance), web framework for building APIs with Python.
-- **[Piccolo][piccolo]** – Async ORM and query builder with migration support.
+- **[Pydantic AI][pydantic-ai]** – Agent framework for tool-calling LLMs.
+- **[Polars][polars]** – Fast DataFrame library for telemetry analysis.
 - **[PostgreSQL][postgresql]** – Advanced open-source relational database known for reliability.
-- **[GraphQL][graphql]** – API query language providing a more efficient alternative to REST.
 
 ### Frontend
 - **[TypeScript][typescript]** – Core language for frontend, adding static types to JavaScript.
 - **[Next.js][nextjs]** – React framework for production-ready applications.
 - **[Tailwind CSS][tailwind]** – Utility-first CSS framework for rapid UI development.
 - **[Chart.js][chartjs]** – Simple yet flexible JavaScript charting library.
+
+### AI Integrations
+- **[You.com Express API][you-api]** – Live web search with citations for real-time aviation intel.
+- **[Google Gemini 2.5][gemini]** – Tool-calling LLM with 4 custom aviation telemetry analysis functions.
 
 ## 🚀 Getting Started
 
@@ -72,7 +83,11 @@ pre-commit --version
    cp frontend/.env.local.example frontend/.env.local
    ```
 
-2. Edit the environment files (`.env`, `backend/.env`, and `frontend/.env.local`) to set the required secrets and configuration values (such as database URLs, API keys, etc.).
+2. Edit the environment files (`.env`, `backend/.env`, and `frontend/.env.local`) to set the required secrets and configuration values:
+   - **Required for AI features:**
+     - `GOOGLE_API_KEY` – Gemini agent with telemetry tools
+     - `YOU_COM_API_KEY` – You.com Express for live web intel
+   - Database configs, etc.
 
 3. Install pre-commit hooks:
    ```bash
@@ -173,16 +188,17 @@ This project is licensed under the [MIT License](./LICENSE).
 [chartjs]: https://www.chartjs.org/
 [docker-desktop]: https://www.docker.com/products/docker-desktop/
 [fastapi]: https://fastapi.tiangolo.com/
+[gemini]: https://ai.google.dev/gemini-api
 [graphql]: https://graphql.org/
 [nextjs]: https://nextjs.org/
 [piccolo]: https://piccolo-orm.com/
+[polars]: https://pola.rs/
 [postgresql]: https://www.postgresql.org/
 [pre-commit]: https://pre-commit.com/
-[piccolo]: https://piccolo-orm.com/
-[postgresql]: https://www.postgresql.org/
-[pre-commit]: https://pre-commit.com/
+[pydantic-ai]: https://ai.pydantic.dev/
 [python]: https://www.python.org/
 [releases]: https://github.com/lmiguelvargasf/nova-stack/releases
 [tailwind]: https://tailwindcss.com/
 [task]: https://taskfile.dev/
 [typescript]: https://www.typescriptlang.org/
+[you-api]: https://documentation.you.com/
