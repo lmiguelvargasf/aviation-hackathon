@@ -27,29 +27,31 @@ export default function Home() {
       </div>
 
       <div className="relative mx-auto flex min-h-screen max-w-6xl flex-col items-center justify-center px-6 py-24 text-center lg:px-10">
-        <div className="absolute left-1/2 top-[15%] -translate-x-1/2 animate-[fly_10s_linear_infinite]">
-          <svg
-            width="80"
-            height="80"
-            viewBox="0 0 100 100"
-            className="drop-shadow-[0_0_15px_rgba(56,189,248,0.6)] animate-[bank_3s_ease-in-out_infinite]"
-          >
-            <path
-              d="M50 20 L50 35 L35 45 L20 47 L22 50 L35 48 L50 55 L50 75 L45 78 L46 80 L50 79 L54 80 L55 78 L50 75 L50 55 L65 48 L78 50 L80 47 L65 45 L50 35 Z"
-              fill="#38bdf8"
-              stroke="#0ea5e9"
-              strokeWidth="1"
-            />
-            <circle cx="50" cy="25" r="3" fill="#7dd3fc" />
-          </svg>
-        </div>
         <p className="text-xs uppercase tracking-[0.6em] text-sky-300">
           Aviation hackathon demo
         </p>
         <h1 className="mt-6 bg-gradient-to-r from-white via-sky-100 to-sky-300 bg-clip-text text-5xl font-bold leading-tight text-transparent sm:text-6xl lg:text-7xl">
           ClearSky AI
         </h1>
-        <p className="mt-3 text-xl font-medium text-sky-200 sm:text-2xl">
+        <div className="relative mt-4 h-20 w-full overflow-hidden">
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 animate-[fly_10s_linear_infinite]">
+            <svg
+              width="80"
+              height="80"
+              viewBox="0 0 100 100"
+              className="drop-shadow-[0_0_15px_rgba(56,189,248,0.6)] animate-[bank_3s_ease-in-out_infinite]"
+            >
+              <path
+                d="M50 20 L50 35 L35 45 L20 47 L22 50 L35 48 L50 55 L50 75 L45 78 L46 80 L50 79 L54 80 L55 78 L50 75 L50 55 L65 48 L78 50 L80 47 L65 45 L50 35 Z"
+                fill="#38bdf8"
+                stroke="#0ea5e9"
+                strokeWidth="1"
+              />
+              <circle cx="50" cy="25" r="3" fill="#7dd3fc" />
+            </svg>
+          </div>
+        </div>
+        <p className="text-xl font-medium text-sky-200 sm:text-2xl">
           Deterministic + AI Go/No-Go radar
         </p>
         <p className="mt-6 max-w-2xl text-base text-slate-300">
