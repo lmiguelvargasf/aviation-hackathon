@@ -1,12 +1,11 @@
 from __future__ import annotations
 
 from collections import deque
-from datetime import datetime
-from typing import Deque
+from datetime import UTC, datetime
 
 from backend.schemas import FlightContext, RiskFactor, RiskResult
 
-RECENT_EVALUATIONS: Deque[tuple[datetime, int]] = deque(maxlen=12)
+RECENT_EVALUATIONS: deque[tuple[datetime, int]] = deque(maxlen=12)
 
 
 def compute_risk(context: FlightContext) -> RiskResult:
@@ -98,7 +97,7 @@ def compute_risk(context: FlightContext) -> RiskResult:
     clamped_score = max(0, min(100, score))
     tier = _tier_for_score(clamped_score)
 
-    add_recent_evaluation(datetime.utcnow(), clamped_score)
+    add_recent_evaluation(datetime.now(UTC), clamped_score)
     return RiskResult(score=clamped_score, tier=tier, factors=factors)
 
 
@@ -112,4 +111,3 @@ def _tier_for_score(score: int) -> str:
     if score < 60:
         return "CAUTION"
     return "NO-GO"
-

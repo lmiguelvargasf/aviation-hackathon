@@ -1,21 +1,26 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
 import Chart from "chart.js/auto";
+import { useEffect, useMemo, useRef } from "react";
 
 import type { EvaluationHistoryPoint } from "@/lib/apiClient";
 
 export function HistoryChart({ data }: { data: EvaluationHistoryPoint[] }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const pacificFormatter = useMemo(
+    () =>
+      new Intl.DateTimeFormat("en-US", {
+        timeZone: "America/Los_Angeles",
+        hour: "2-digit",
+        minute: "2-digit",
+        timeZoneName: "short",
+      }),
+    [],
+  );
   const labels = useMemo(
     () =>
-      data.map((point) =>
-        new Date(point.timestamp).toLocaleTimeString("en-US", {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-      ),
-    [data],
+      data.map((point) => pacificFormatter.format(new Date(point.timestamp))),
+    [data, pacificFormatter],
   );
 
   useEffect(() => {
@@ -74,4 +79,3 @@ export function HistoryChart({ data }: { data: EvaluationHistoryPoint[] }) {
 
   return <canvas ref={canvasRef} className="h-48 w-full" />;
 }
-
