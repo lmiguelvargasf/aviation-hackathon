@@ -27,7 +27,7 @@ export default function Home() {
       </div>
 
       <div className="relative mx-auto flex min-h-screen max-w-6xl flex-col items-center justify-center px-6 py-24 text-center lg:px-10">
-        <div className="absolute left-1/2 top-[15%] -translate-x-1/2 animate-[fly_10s_linear_infinite] [animation-delay:-5s]">
+        <div className="absolute left-1/2 top-[15%] -translate-x-1/2 animate-[fly_10s_linear_infinite]">
           <svg
             width="80"
             height="80"

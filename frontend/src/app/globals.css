@@ -27,7 +27,7 @@ body {
 
 @keyframes fly {
   0% {
-    transform: translateX(-50%) translateX(-100vw);
+    transform: translateX(-50%) translateX(-20vw);
   }
   100% {
     transform: translateX(-50%) translateX(100vw);
