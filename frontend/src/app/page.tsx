@@ -1,4 +1,9 @@
+/* eslint-disable react/jsx-no-useless-fragment */
+"use client";
+
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useMemo, useState } from "react";
 
 type Stat = {
   label: string;
@@ -56,6 +61,8 @@ export default function Home() {
           </a>
         </div>
 
+        <AgentDialog />
+
         <div className="mt-14 grid w-full gap-4 rounded-3xl border border-white/10 bg-white/5 p-6 shadow-2xl shadow-black/40 backdrop-blur sm:grid-cols-3">
           {stats.map((stat) => {
             const Card = stat.href ? Link : "div";
@@ -86,5 +93,145 @@ export default function Home() {
         </div>
       </div>
     </main>
+  );
+}
+
+type Suggestion = {
+  label: string;
+  hint: string;
+  target: string;
+  keywords: string[];
+  icon: string;
+};
+
+const suggestionBlueprint: Suggestion[] = [
+  {
+    label: "Assess flight safety",
+    hint: "Route to the Should You Fly? console",
+    target: "/should-you-fly",
+    keywords: ["assess", "safety", "fly", "go", "launch", "risk"],
+    icon: "✈️",
+  },
+  {
+    label: "Review deterministic rules",
+    hint: "See every scoring rule with point values",
+    target: "/rules",
+    keywords: ["rule", "deterministic", "points", "scoring"],
+    icon: "📋",
+  },
+  {
+    label: "Search Google",
+    hint: "Open external search in a new tab",
+    target: "external",
+    keywords: [],
+    icon: "🌐",
+  },
+];
+
+function AgentDialog() {
+  const router = useRouter();
+  const [message, setMessage] = useState("");
+  const [focusedIndex, setFocusedIndex] = useState(0);
+
+  const suggestions = useMemo(() => {
+    const trimmed = message.trim().toLowerCase();
+    return suggestionBlueprint
+      .map((suggestion) => {
+        if (!trimmed) {
+          return {
+            ...suggestion,
+            priority: suggestion.target === "external" ? 2 : 0,
+          };
+        }
+        const match = suggestion.keywords.some((keyword) =>
+          trimmed.includes(keyword),
+        );
+        return {
+          ...suggestion,
+          priority: suggestion.target === "external" ? 2 : match ? 0 : 1,
+        };
+      })
+      .sort((a, b) => a.priority - b.priority);
+  }, [message]);
+
+  const triggerSuggestion = (index: number) => {
+    const suggestion = suggestions[index];
+    if (!suggestion) {
+      router.push("/should-you-fly");
+      return;
+    }
+    if (suggestion.target === "external") {
+      window.open(
+        `https://www.google.com/search?q=${encodeURIComponent(
+          message || "aviation safety",
+        )}`,
+        "_blank",
+      );
+      return;
+    }
+    router.push(suggestion.target);
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      setFocusedIndex((prev) => Math.min(prev + 1, suggestions.length - 1));
+    } else if (event.key === "ArrowUp") {
+      event.preventDefault();
+      setFocusedIndex((prev) => Math.max(prev - 1, 0));
+    }
+  };
+
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (message.trim().length === 0) return;
+    triggerSuggestion(focusedIndex);
+    setMessage("");
+  };
+
+  return (
+    <div className="mt-12 w-full max-w-3xl rounded-3xl border border-white/10 bg-white/5 p-6 text-left shadow-2xl shadow-black/40 backdrop-blur-lg">
+      <p className="text-sm uppercase tracking-[0.5em] text-sky-200">
+        Agent question
+      </p>
+      <h2 className="mt-3 text-2xl font-semibold text-white">
+        Hi! How can I help you today?
+      </h2>
+      <form className="mt-6" onSubmit={handleSubmit}>
+        <input
+          className="w-full rounded-2xl border border-white/15 bg-slate-900/60 px-4 py-3 text-sm text-white placeholder-slate-400 focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-500/30"
+          placeholder="Type your question and press Enter…"
+          value={message}
+          onChange={(event) => setMessage(event.target.value)}
+          onKeyDown={handleKeyDown}
+        />
+      </form>
+      {message.trim().length > 0 && (
+        <div className="mt-6 space-y-2">
+          {suggestions.map((suggestion, index) => (
+            <button
+              key={suggestion.label}
+              type="button"
+              onClick={() => triggerSuggestion(index)}
+              className={`flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-left text-sm transition ${
+                index === focusedIndex
+                  ? "border-sky-400/60 bg-sky-500/30 text-white"
+                  : "border-white/15 bg-white/5 text-slate-200 hover:border-white/40"
+              }`}
+            >
+              <div>
+                <p className="font-semibold">
+                  {suggestion.icon} {suggestion.label}
+                </p>
+                <p className="text-xs text-slate-400">{suggestion.hint}</p>
+              </div>
+              <span className="text-xs text-slate-400">
+                {suggestion.target === "external" ? "↗ Google" : "↪"}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
