@@ -20,7 +20,6 @@ import {
   getEvaluationHistory,
 } from "@/lib/apiClient";
 import { HistoryChart } from "./widgets/HistoryChart";
-import { RiskFactorChart } from "./widgets/RiskFactorChart";
 
 
 type FlightFormState = {
@@ -110,13 +109,7 @@ export default function ShouldYouFlyPage() {
   const departureDate = new Date(form.departure_time_utc);
   const departureDisplay = Number.isNaN(departureDate.getTime())
     ? "Set departure time"
-    : departureDate.toLocaleString("en-US", {
-        month: "short",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        timeZoneName: "short",
-      });
+    : departureDate.toISOString().replace("T", " ").slice(0, 16) + "Z";
   const aiSourceLabel = result
     ? result.explanation.source === "You.com"
       ? "You.com Express"
@@ -493,9 +486,16 @@ export default function ShouldYouFlyPage() {
                       <p className="text-sm font-semibold uppercase tracking-wide text-slate-400">
                         Fired factors
                       </p>
-                      <div className="mt-3 rounded-2xl border border-white/10 bg-white/5 p-4">
-                        <RiskFactorChart factors={result.risk.factors} />
-                      </div>
+                      <ul className="mt-3 flex flex-wrap gap-2 text-xs">
+                        {result.risk.factors.map((factor) => (
+                          <li
+                            key={factor.label}
+                            className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-slate-200"
+                          >
+                            {factor.label} (+{factor.impact})
+                          </li>
+                        ))}
+                      </ul>
                     </div>
                   )}
                   <div className="mt-6 space-y-4 rounded-2xl border border-white/10 bg-slate-900/50 p-5">
